@@ -14,15 +14,15 @@
 -- that analytical findings can vary depending on the data.
 -- ==========================================================
 
-SELECT deposit_type,
+SELECT deposit_type,  
     COUNT(*) AS bookings,
     SUM(CASE WHEN is_canceled = 1 THEN 1 END) AS canceled,
     ROUND(
-        SUM(is_canceled)::numeric / COUNT(*) * 100, 2
-    ) AS cancelation_rate
+    SUM(is_canceled)::numeric / COUNT(*) *100, 2)
+    AS cancelation_rate
 FROM hotel_analysis
 GROUP BY deposit_type
-ORDER BY cancelation_rate DESC;
+ORDER BY cancelation_rate DESC
 
 
 -- ==========================================================
@@ -42,8 +42,18 @@ ORDER BY cancelation_rate DESC;
 -- canceled bookings had been completed.
 -- ==========================================================
 
-SELECT hotel_type,
-    ROUND(SUM(adr * total_nights), 2) AS revenue_risk
+SELECT
+    hotel_type,
+    COUNT(*) AS total_bookings,
+    SUM(is_canceled) AS total_cancellations,
+    ROUND(
+        SUM(is_canceled)::numeric * 100 / COUNT(*),
+        2
+    ) AS cancellation_rate,
+    ROUND(
+        SUM(CASE WHEN is_canceled = 1 THEN adr * total_nights ELSE 0 END),
+        2
+    ) AS estimated_revenue_lost
 FROM hotel_analysis
-WHERE is_canceled = 1
-GROUP BY hotel_type;
+GROUP BY hotel_type
+ORDER BY estimated_revenue_lost DESC;
